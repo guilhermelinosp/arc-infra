@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          HEAD="${{ github.head_ref }}"
+          BASE="${{ github.base_ref }}"
+          echo "PR: $HEAD → $BASE"
+          case "$BASE" in
+            staging)
+              case "$HEAD" in
+                feature/*|bugfix/*) echo "✅ feature/* → staging" ;;
+                *) echo "❌ Para staging, use feature/* ou bugfix/*"; exit 1 ;;
+              esac
+              ;;
+            main)
+              case "$HEAD" in
+                staging|hotfix/*) echo "✅ $HEAD → main" ;;
+                *) echo "❌ Para main, use staging ou hotfix/*"; exit 1 ;;
+              esac
+              ;;
+          esac
+
+      - name: Validate PR title (Conventional Commits)
+        if: github.head_ref != 'staging'
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "Title: $TITLE"
+          if echo "$TITLE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
+            echo "✅ Conventional Commits"
+          else
+            echo "❌ Use: tipo(escopo): descrição"
+            exit 1
+          fi
