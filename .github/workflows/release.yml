@@ -1,0 +1,30 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: simple
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        if: ${{ steps.release.outputs.release_created }}
+
+      - name: Tag created
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          echo "✅ Release ${{ steps.release.outputs.tag_name }} criada!"
+          echo "Versão: ${{ steps.release.outputs.version }}"
