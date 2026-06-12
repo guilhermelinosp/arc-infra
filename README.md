@@ -62,3 +62,5 @@ kubectl apply -f runner-templates/runnerdeployment.yaml
 
 O controller expõe `POST /` para receber webhooks do GitHub.
 Configure no GitHub App: Payload URL = `https://webhook.seudominio.com`
+# Test flow
+# Trigger re-check
