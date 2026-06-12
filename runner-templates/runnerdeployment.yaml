@@ -1,0 +1,43 @@
+# Template: RunnerDeployment + HorizontalRunnerAutoscaler
+# Copie e altere repository, name, e image conforme necessário
+---
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: runner-example
+  namespace: arc-actions
+spec:
+  replicas: 1
+  template:
+    spec:
+      repository: guilhermelinosp/meu-repo
+      image: ghcr.io/guilhermelinosp/arc-runner:latest
+      dockerdWithinRunnerContainer: false
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+---
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: HorizontalRunnerAutoscaler
+metadata:
+  name: runner-example-autoscaler
+  namespace: arc-actions
+spec:
+  scaleTargetRef:
+    name: runner-example
+  minReplicas: 0
+  maxReplicas: 5
+  metrics:
+    - type: TotalNumberOfQueuedAndInProgressWorkflowRuns
+      repositoryNames:
+        - guilhermelinosp/meu-repo

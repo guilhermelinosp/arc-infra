@@ -1,0 +1,572 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      meta.helm.sh/release-name: arc
+      meta.helm.sh/release-namespace: arc-actions
+    creationTimestamp: "2026-06-12T00:43:01Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: actions-runner-controller
+      app.kubernetes.io/version: 0.27.6
+      helm.sh/chart: actions-runner-controller-0.23.7
+    name: arc-actions-runner-controller
+    namespace: arc-actions
+    resourceVersion: "3165002"
+    uid: e21f6a96-7328-4268-9213-e1491a3a58fe
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/instance: arc
+        app.kubernetes.io/name: actions-runner-controller
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/instance: arc
+          app.kubernetes.io/name: actions-runner-controller
+      spec:
+        containers:
+        - args:
+          - --metrics-addr=127.0.0.1:8080
+          - --enable-leader-election
+          - --port=9443
+          - --sync-period=1m
+          - --default-scale-down-delay=10m
+          - --docker-image=docker:dind
+          - --runner-image=summerwind/actions-runner:latest
+          - --log-format=text
+          command:
+          - /manager
+          env:
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: github_token
+                name: controller-manager
+                optional: true
+          - name: GITHUB_APP_ID
+            valueFrom:
+              secretKeyRef:
+                key: github_app_id
+                name: controller-manager
+                optional: true
+          - name: GITHUB_APP_INSTALLATION_ID
+            valueFrom:
+              secretKeyRef:
+                key: github_app_installation_id
+                name: controller-manager
+                optional: true
+          - name: GITHUB_APP_PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: github_app_private_key
+                name: controller-manager
+                optional: true
+          - name: GITHUB_BASICAUTH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: github_basicauth_password
+                name: controller-manager
+                optional: true
+          image: summerwind/actions-runner-controller:v0.27.6
+          imagePullPolicy: IfNotPresent
+          name: manager
+          ports:
+          - containerPort: 9443
+            name: webhook-server
+            protocol: TCP
+          resources: {}
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /etc/actions-runner-controller
+            name: secret
+            readOnly: true
+          - mountPath: /tmp
+            name: tmp
+          - mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: cert
+            readOnly: true
+        - args:
+          - --secure-listen-address=0.0.0.0:8443
+          - --upstream=http://127.0.0.1:8080/
+          - --logtostderr=true
+          - --v=10
+          image: quay.io/brancz/kube-rbac-proxy:v0.13.1
+          imagePullPolicy: IfNotPresent
+          name: kube-rbac-proxy
+          ports:
+          - containerPort: 8443
+            name: metrics-port
+            protocol: TCP
+          resources: {}
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: arc-actions-runner-controller
+        serviceAccountName: arc-actions-runner-controller
+        terminationGracePeriodSeconds: 10
+        volumes:
+        - name: secret
+          secret:
+            defaultMode: 420
+            secretName: controller-manager
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: arc-actions-runner-controller-serving-cert
+        - emptyDir: {}
+          name: tmp
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-06-12T00:45:57Z"
+      lastUpdateTime: "2026-06-12T00:45:57Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-06-12T00:43:01Z"
+      lastUpdateTime: "2026-06-12T00:45:57Z"
+      message: ReplicaSet "arc-actions-runner-controller-5ff89db748" has successfully
+        progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "17"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"runner-controller","namespace":"arc-actions"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"runner-controller"}},"template":{"metadata":{"labels":{"app":"runner-controller"}},"spec":{"containers":[{"env":[{"name":"WEBHOOK_SECRET","valueFrom":{"secretKeyRef":{"key":"webhook-secret","name":"runner-controller-secret"}}},{"name":"NAMESPACE","value":"arc-actions"},{"name":"OWNER","value":"guilhermelinosp"},{"name":"RUNNER_IMAGE","value":"ghcr.io/guilhermelinosp/arc-runner:latest"},{"name":"PORT","value":"8080"}],"image":"ghcr.io/guilhermelinosp/runner-controller:latest","name":"controller","ports":[{"containerPort":8080,"protocol":"TCP"}],"resources":{"limits":{"cpu":"200m","memory":"128Mi"},"requests":{"cpu":"100m","memory":"64Mi"}}}],"serviceAccountName":"runner-controller"}}}}
+    creationTimestamp: "2026-06-12T16:43:10Z"
+    generation: 23
+    name: runner-controller
+    namespace: arc-actions
+    resourceVersion: "3449681"
+    uid: d3b27ce5-7263-48dc-9813-218070088a85
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: runner-controller
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2026-06-12T14:50:37-03:00"
+        labels:
+          app: runner-controller
+      spec:
+        containers:
+        - env:
+          - name: WEBHOOK_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: webhook-secret
+                name: runner-controller-secret
+          - name: NAMESPACE
+            value: arc-actions
+          - name: OWNER
+            value: guilhermelinosp
+          - name: RUNNER_IMAGE
+            value: ghcr.io/guilhermelinosp/arc-runner:latest
+          - name: PORT
+            value: "8080"
+          - name: GITHUB_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: token
+                name: gh-token
+          - name: POLL_INTERVAL
+            value: "300"
+          - name: WEBHOOK_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: webhook-secret
+                name: runner-controller-secret
+          image: ghcr.io/guilhermelinosp/runner-controller:latest
+          imagePullPolicy: Always
+          name: controller
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: ghcr-pull
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: runner-controller
+        serviceAccountName: runner-controller
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-06-12T17:13:25Z"
+      lastUpdateTime: "2026-06-12T17:13:25Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-06-12T16:43:10Z"
+      lastUpdateTime: "2026-06-12T17:50:41Z"
+      message: ReplicaSet "runner-controller-675574fc75" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 23
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+    updatedReplicas: 1
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: arc
+      meta.helm.sh/release-namespace: arc-actions
+    creationTimestamp: "2026-06-12T00:43:01Z"
+    labels:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: actions-runner-controller
+      app.kubernetes.io/version: 0.27.6
+      helm.sh/chart: actions-runner-controller-0.23.7
+    name: arc-actions-runner-controller-metrics-service
+    namespace: arc-actions
+    resourceVersion: "3164192"
+    uid: 428c87b7-4107-4628-a5c1-0d7ea4308e2b
+  spec:
+    clusterIP: 10.100.244.57
+    clusterIPs:
+    - 10.100.244.57
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: metrics-port
+      port: 8443
+      protocol: TCP
+      targetPort: metrics-port
+    selector:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/name: actions-runner-controller
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: arc
+      meta.helm.sh/release-namespace: arc-actions
+    creationTimestamp: "2026-06-12T00:43:01Z"
+    labels:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: actions-runner-controller
+      app.kubernetes.io/version: 0.27.6
+      helm.sh/chart: actions-runner-controller-0.23.7
+    name: arc-actions-runner-controller-webhook
+    namespace: arc-actions
+    resourceVersion: "3164194"
+    uid: 0fe4d40f-5512-441b-a843-790e8b620316
+  spec:
+    clusterIP: 10.96.189.40
+    clusterIPs:
+    - 10.96.189.40
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 9443
+    selector:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/name: actions-runner-controller
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"runner-controller","namespace":"arc-actions"},"spec":{"ports":[{"name":"http","port":8080,"protocol":"TCP","targetPort":8080}],"selector":{"app":"runner-controller"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-06-12T16:43:10Z"
+    name: runner-controller
+    namespace: arc-actions
+    resourceVersion: "3422472"
+    uid: d5b123c2-4f82-4bb2-b20a-094f5c01db32
+  spec:
+    clusterIP: 10.108.44.86
+    clusterIPs:
+    - 10.108.44.86
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: runner-controller
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"gateway.networking.k8s.io/v1","kind":"HTTPRoute","metadata":{"annotations":{},"name":"runner-controller","namespace":"arc-actions"},"spec":{"hostnames":["webhook.hellnet.com.br"],"parentRefs":[{"name":"pve","namespace":"kube-system"}],"rules":[{"backendRefs":[{"name":"runner-controller","port":8080}]}]}}
+    creationTimestamp: "2026-06-12T16:43:10Z"
+    generation: 1
+    name: runner-controller
+    namespace: arc-actions
+    resourceVersion: "3422481"
+    uid: a6f61fc5-3391-4313-b969-ad217f13f232
+  spec:
+    hostnames:
+    - webhook.hellnet.com.br
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: pve
+      namespace: kube-system
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: runner-controller
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-06-12T16:43:10Z"
+        message: Accepted HTTPRoute
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-06-12T16:43:10Z"
+        message: Service reference is valid
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: io.cilium/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: pve
+        namespace: kube-system
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: arc
+      meta.helm.sh/release-namespace: arc-actions
+    creationTimestamp: "2026-06-12T00:43:01Z"
+    labels:
+      app.kubernetes.io/managed-by: Helm
+    name: arc-actions-runner-controller-leader-election
+    namespace: arc-actions
+    resourceVersion: "3164189"
+    uid: 92435b26-cb11-4c73-8401-9c591dc62c06
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps/status
+    verbs:
+    - get
+    - update
+    - patch
+  - apiGroups:
+    - ""
+    resources:
+    - events
+    verbs:
+    - create
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"Role","metadata":{"annotations":{},"name":"runner-controller","namespace":"arc-actions"},"rules":[{"apiGroups":["actions.summerwind.dev"],"resources":["runnerdeployments","horizontalrunnerautoscalers","runners","runnerreplicasets"],"verbs":["get","list","watch","create","update","patch","delete"]},{"apiGroups":[""],"resources":["pods","events"],"verbs":["get","list","watch"]}]}
+    creationTimestamp: "2026-06-12T16:43:10Z"
+    name: runner-controller
+    namespace: arc-actions
+    resourceVersion: "3422459"
+    uid: 3c0c365c-cb7b-4482-bee2-8427ad118980
+  rules:
+  - apiGroups:
+    - actions.summerwind.dev
+    resources:
+    - runnerdeployments
+    - horizontalrunnerautoscalers
+    - runners
+    - runnerreplicasets
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
+  - apiGroups:
+    - ""
+    resources:
+    - pods
+    - events
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: arc
+      meta.helm.sh/release-namespace: arc-actions
+    creationTimestamp: "2026-06-12T00:43:01Z"
+    labels:
+      app.kubernetes.io/managed-by: Helm
+    name: arc-actions-runner-controller-leader-election
+    namespace: arc-actions
+    resourceVersion: "3164190"
+    uid: b4789f4b-9451-43d0-bc23-4036af22e5c3
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: arc-actions-runner-controller-leader-election
+  subjects:
+  - kind: ServiceAccount
+    name: arc-actions-runner-controller
+    namespace: arc-actions
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"RoleBinding","metadata":{"annotations":{},"name":"runner-controller","namespace":"arc-actions"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"Role","name":"runner-controller"},"subjects":[{"kind":"ServiceAccount","name":"runner-controller","namespace":"arc-actions"}]}
+    creationTimestamp: "2026-06-12T16:43:10Z"
+    name: runner-controller
+    namespace: arc-actions
+    resourceVersion: "3422460"
+    uid: ecc984dd-6463-4194-b5b9-25d7b1edf565
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: runner-controller
+  subjects:
+  - kind: ServiceAccount
+    name: runner-controller
+    namespace: arc-actions
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: arc
+      meta.helm.sh/release-namespace: arc-actions
+    creationTimestamp: "2026-06-12T00:43:01Z"
+    labels:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: actions-runner-controller
+      app.kubernetes.io/version: 0.27.6
+      helm.sh/chart: actions-runner-controller-0.23.7
+    name: arc-actions-runner-controller
+    namespace: arc-actions
+    resourceVersion: "3164180"
+    uid: 81be2793-73bd-40b5-978d-b661f496c7b2
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    creationTimestamp: "2026-06-12T00:42:17Z"
+    name: default
+    namespace: arc-actions
+    resourceVersion: "3162848"
+    uid: 6af24893-dac9-4e44-ab8a-85666c30a088
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{},"name":"runner-controller","namespace":"arc-actions"}}
+    creationTimestamp: "2026-06-12T16:43:10Z"
+    name: runner-controller
+    namespace: arc-actions
+    resourceVersion: "3422464"
+    uid: 1a7a2501-ee27-4833-b8f5-48f97f92ce52
+kind: List
+metadata:
+  resourceVersion: ""

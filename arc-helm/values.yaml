@@ -1,0 +1,12 @@
+# Helm values for actions-runner-controller
+# helm install arc actions-runner-controller/actions-runner-controller -n arc-actions -f values.yaml
+
+authSecret:
+  create: false
+
+githubAppId: 4032967
+githubAppInstallationId: 139727974
+githubAppPrivateKeySecretName: controller-manager
+
+# Namespace must have label: pod-security.kubernetes.io/enforce=privileged
+# (required for dind sidecar)
