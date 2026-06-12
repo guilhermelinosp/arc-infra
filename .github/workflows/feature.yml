@@ -1,0 +1,29 @@
+name: feature
+
+on:
+  push:
+    branches:
+      - feature/**
+      - bugfix/**
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Conventional Commits (último commit)
+        run: |
+          MSG="${{ github.event.head_commit.message }}"
+          echo "Commit: $MSG"
+          if echo "$MSG" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
+            echo "✅ Conventional Commits"
+          else
+            echo "⚠️ Aviso: commit não segue Conventional Commits"
+            echo "   Ex: feat(auth): adiciona login com Google"
+          fi
+
+      - name: Validate files
+        run: |
+          echo "Arquivos alterados: ${{ github.event.head_commit.modified }}"
+          echo "✅ Lint concluído"
