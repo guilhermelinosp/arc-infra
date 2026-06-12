@@ -3,13 +3,11 @@ name: CI
 on:
   pull_request:
     branches: [main, staging]
-  push:
-    branches: [staging, feature/*]
 
 jobs:
-  validate:
+  validate-branch:
     uses: guilhermelinosp/ci-templates/.github/workflows/branch-rules.yml@main
     secrets: inherit
-  merge-check:
+  check-commits:
     uses: guilhermelinosp/ci-templates/.github/workflows/merge-check.yml@main
     secrets: inherit
