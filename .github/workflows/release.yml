@@ -13,12 +13,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Semantic version
+        id: semver
+        run: |
+          LATEST_TAG=$(gh release list --repo ${{ github.repository }} --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "v0.0.0")
+          [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
+
+          TAG_NUM=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$TAG_NUM"
+          MAJOR=${MAJOR:-0}; MINOR=${MINOR:-0}; PATCH=${PATCH:-0}
+          PATCH=$((PATCH + 1))
+
+          echo "version=v${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v$(date +%s)" \
+          gh release create "${{ steps.semver.outputs.version }}" \
             --repo "${{ github.repository }}" \
-            --title "Release $(date +%Y-%m-%d)" \
-            --generate-notes
+            --title "${{ steps.semver.outputs.version }}" \
+            --generate-notes \
+            --notes-start-tag "${{ steps.semver.outputs.latest }}"
