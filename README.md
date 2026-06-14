@@ -65,3 +65,4 @@ Configure no GitHub App: Payload URL = `https://webhook.seudominio.com`
 # Test flow
 # Trigger re-check
 # Trigger
+# Feature test
