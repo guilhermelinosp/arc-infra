@@ -32,7 +32,7 @@ jobs:
         run: |
           TITLE="${{ github.event.pull_request.title }}"
           echo "Title: $TITLE"
-          if echo "$TITLE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
+          if echo "$TITLE" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
             echo "✅ Conventional Commits"
           else
             echo "❌ Use: tipo(escopo): descrição"

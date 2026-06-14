@@ -16,7 +16,7 @@ jobs:
         run: |
           MSG="${{ github.event.head_commit.message }}"
           echo "Commit: $MSG"
-          if echo "$MSG" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
+          if echo "$MSG" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
             echo "✅ Conventional Commits"
           else
             echo "⚠️ Aviso: commit não segue Conventional Commits"

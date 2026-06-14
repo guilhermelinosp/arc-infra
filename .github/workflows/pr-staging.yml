@@ -30,7 +30,7 @@ jobs:
       - name: Validate PR title
         run: |
           TITLE="${{ github.event.pull_request.title }}"
-          if echo "$TITLE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
+          if echo "$TITLE" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
             echo "✅ PR title: $TITLE"
           else
             echo "❌ PR title deve seguir Conventional Commits"
@@ -45,7 +45,7 @@ jobs:
           ERR=0
           echo "$COMMITS" | while read line; do
             if echo "$line" | grep -q '^Merge'; then continue; fi
-            if ! echo "$line" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
+            if ! echo "$line" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+'; then
               echo "❌ $line"
               ERR=1
             fi
