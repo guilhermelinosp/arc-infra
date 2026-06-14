@@ -1,0 +1,13 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": false,
+      "draft": false,
+      "prerelease": false,
+      "include-v-in-tag": true,
+      "separate-pull-requests": false
+    }
+  }
+}
