@@ -7,37 +7,5 @@ on:
       - main
 
 jobs:
-  branch-name:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate branch name
-        run: |
-          HEAD="${{ github.head_ref }}"
-          BASE="${{ github.base_ref }}"
-          echo "PR: $HEAD → $BASE"
-          case "$HEAD" in
-            staging|hotfix/*) echo "✅ $HEAD → main" ;;
-            *) echo "❌ Para main, use staging ou hotfix/*"; exit 1 ;;
-          esac
-
-  release-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check for unreleased changes
-        run: |
-          git fetch origin ${{ github.base_ref }}
-          COMMITS=$(git log --oneline origin/${{ github.base_ref }}..HEAD)
-          echo "Commits a serem lançados:"
-          echo "$COMMITS"
-
-      - name: Check changelog (se existir)
-        run: |
-          if [ -f CHANGELOG.md ]; then
-            echo "CHANGELOG.md encontrado ✅"
-          else
-            echo "Sem CHANGELOG.md (release-please vai gerar automático)"
-          fi
+  validate:
+    uses: guilhermelinosp/ci-templates/.github/workflows/pr-main.yml@main
