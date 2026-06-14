@@ -3,9 +3,22 @@ name: pr-main
 on:
   pull_request:
     types: [opened, synchronize]
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   validate:
-    uses: guilhermelinosp/ci-templates/.github/workflows/pr-main.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Validate branch
+        run: |
+          case "${{ github.head_ref }}" in
+            staging|hotfix/*) echo "✅ ${{ github.head_ref }} → main" ;;
+            *) echo "❌ Use staging ou hotfix/*"; exit 1 ;;
+          esac
+      - name: Unreleased changes
+        run: |
+          git fetch origin ${{ github.base_ref }} 2>/dev/null || true
+          git log --oneline origin/${{ github.base_ref }}..HEAD 2>/dev/null

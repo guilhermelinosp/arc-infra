@@ -1,10 +1,23 @@
 name: feature
+
 on:
   push:
     branches:
       - feature/**
       - feat/**
       - bugfix/**
+
 jobs:
   lint:
-    uses: guilhermelinosp/ci-templates/.github/workflows/feature-check.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Conventional Commits
+        run: |
+          git fetch origin main 2>/dev/null || true
+          git log --oneline origin/main..HEAD 2>/dev/null | while read line; do
+            [ "$(echo "$line" | grep -c '^Merge')" -gt 0 ] && continue
+            MSG=$(echo "$line" | sed 's/^[a-f0-9]* //')
+            echo "$MSG" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+' \
+              && echo "✅ $MSG" || echo "⚠️ $MSG"
+          done
