@@ -15,41 +15,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-tags: true
 
-      - name: SemVer bump
-        id: semver
+      - name: Create release
         run: |
-          set -euo pipefail
-          gh auth setup-git
-
-          LATEST_TAG=$(gh release list --repo ${{ github.repository }} --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "v0.0.0")
-          [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
-          echo "Latest tag: $LATEST_TAG"
-
-          TAG_NUM=${LATEST_TAG#v}
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$TAG_NUM"
-          MAJOR=${MAJOR:-0}; MINOR=${MINOR:-0}; PATCH=${PATCH:-0}
-
-          COMMITS=$(git log --oneline "${LATEST_TAG}..HEAD" 2>/dev/null || echo "")
-
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
-            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
-          elif echo "$COMMITS" | grep -q "^feat"; then
-            MINOR=$((MINOR + 1)); PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
-
-          echo "version=v${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${{ steps.semver.outputs.version }}"
-          echo "Creating release $VERSION"
+          VERSION="v1.0.0"
           gh release create "$VERSION" \
             --repo ${{ github.repository }} \
             --title "$VERSION" \
-            --generate-notes
+            --generate-notes \
+            --target ${{ github.sha }}
