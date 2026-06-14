@@ -1,12 +1,10 @@
 name: feature
-
 on:
   push:
     branches:
       - feature/**
       - feat/**
       - bugfix/**
-
 jobs:
   lint:
     uses: guilhermelinosp/ci-templates/.github/workflows/feature-check.yml@main
