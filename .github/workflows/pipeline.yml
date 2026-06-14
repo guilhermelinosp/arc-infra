@@ -1,0 +1,17 @@
+name: pipeline
+
+on:
+  push:
+    branches: [main, feat/*]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    uses: guilhermelinosp/ci-templates/.github/workflows/branch-rules.yml@latest
+  commits:
+    uses: guilhermelinosp/ci-templates/.github/workflows/merge-check.yml@latest
