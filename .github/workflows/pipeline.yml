@@ -11,7 +11,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
-    uses: guilhermelinosp/ci-templates/.github/workflows/branch-rules.yml@latest
-  commits:
-    uses: guilhermelinosp/ci-templates/.github/workflows/merge-check.yml@latest
+  validate-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block direct push
+        if: github.event_name == 'push'
+        run: |
+          echo "❌ Push direto para ${{ github.ref_name }}"
+          echo "Crie um PR de uma branch feat/*"
+          exit 1
+
+      - name: Validate branch name
+        if: github.event_name == 'pull_request'
+        run: |
+          HEAD="${{ github.head_ref }}"
+          BASE="${{ github.base_ref }}"
+          case "$HEAD" in feat/*) echo "✅ $HEAD → $BASE" ;; *) echo "❌ Use feat/*"; exit 1 ;; esac
+          case "$BASE" in main|staging) echo "✅ $HEAD → $BASE" ;; *) echo "❌ Base inválida"; exit 1 ;; esac
+
+      - name: Validate PR title
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "${{ github.event.pull_request.title }}" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+' \
+            && echo "✅ PR title" || { echo "❌ Deve seguir Conventional Commits"; exit 1; }
