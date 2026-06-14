@@ -13,18 +13,49 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
+      - uses: actions/checkout@v6
         with:
-          release-type: simple
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          fetch-depth: 0
 
-      - name: Checkout
-        uses: actions/checkout@v6
-        if: ${{ steps.release.outputs.release_created }}
-
-      - name: Tag created
-        if: ${{ steps.release.outputs.release_created }}
+      - name: Get next version
+        id: semver
         run: |
-          echo "✅ Release ${{ steps.release.outputs.tag_name }} criada!"
-          echo "Versão: ${{ steps.release.outputs.version }}"
+          set -euo pipefail
+          git fetch --tags --force 2>/dev/null || true
+          LATEST_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n1 || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          TAG_NUM=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$TAG_NUM"
+
+          # Determina bump baseado nos commits desde o último tag
+          COMMITS=$(git log --oneline ${LATEST_TAG}..HEAD 2>/dev/null || echo "")
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "New version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.semver.outputs.version }}" -m "Release ${{ steps.semver.outputs.version }}"
+          git push origin "${{ steps.semver.outputs.version }}"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.semver.outputs.version }}"
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --generate-notes
