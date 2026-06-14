@@ -5,11 +5,15 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  release-please:
-    uses: guilhermelinosp/ci-templates/.github/workflows/release-please.yml@main
-    secrets: inherit
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create release
+        run: |
+          gh release create "v$(date +%s)" \
+            --repo "${{ github.repository }}" \
+            --title "Release $(date +%Y-%m-%d)" \
+            --generate-notes
