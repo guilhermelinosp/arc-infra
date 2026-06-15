@@ -2,7 +2,7 @@ name: pipeline
 
 on:
   push:
-    branches: [main, feat/*]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -10,27 +10,17 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
-  validate-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Block direct push
-        if: github.event_name == 'push'
-        run: |
-          echo "❌ Push direto para ${{ github.ref_name }}"
-          echo "Crie um PR de uma branch feat/*"
-          exit 1
+  validate:
+    if: github.event_name == 'pull_request'
+    uses: guilhermelinosp/ci-templates/.github/workflows/branch-rules.yml@latest
 
-      - name: Validate branch name
-        if: github.event_name == 'pull_request'
-        run: |
-          HEAD="${{ github.head_ref }}"
-          BASE="${{ github.base_ref }}"
-          case "$HEAD" in feat/*) echo "✅ $HEAD → $BASE" ;; *) echo "❌ Use feat/*"; exit 1 ;; esac
-          case "$BASE" in main|staging) echo "✅ $HEAD → $BASE" ;; *) echo "❌ Base inválida"; exit 1 ;; esac
-
-      - name: Validate PR title
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "${{ github.event.pull_request.title }}" | grep -qE '^(feat|fix|docs|style|ref|refactor|test|chore|ci|perf|build|revert)(\(.+\))?!?:\s.+' \
-            && echo "✅ PR title" || { echo "❌ Deve seguir Conventional Commits"; exit 1; }
+  release:
+    needs: validate
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    uses: guilhermelinosp/ci-templates/.github/workflows/release.yml@latest
+    with:
+      runner: self-hosted
