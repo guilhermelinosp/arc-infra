@@ -4,7 +4,7 @@ Infraestrutura do Actions Runner Controller (ARC) no cluster Talos.
 
 ## Estrutura
 
-```
+``` 
 arc-infra/
 ├── runner-controller/           # Webhook controller (cria runners automaticamente)
 │   ├── Dockerfile               # Imagem ghcr.io/guilhermelinosp/runner-controller
