@@ -24,4 +24,3 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
     uses: guilhermelinosp/ci-templates/.github/workflows/release.yml@latest
     with:
-      runner: self-hosted
