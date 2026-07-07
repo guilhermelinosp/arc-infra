@@ -6,13 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: write
-
 jobs:
   validate:
     if: github.event_name == 'pull_request'
