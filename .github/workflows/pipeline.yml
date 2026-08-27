@@ -9,10 +9,10 @@ on:
 jobs:
   validate:
     if: github.event_name == 'pull_request'
-    uses: guilhermelinosp/ci-templates/.github/workflows/branch-rules.yml@latest
+    uses: guilhermelinosp/templates/.github/workflows/branch-rules.yml@latest
 
   release:
     needs: validate
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
-    uses: guilhermelinosp/ci-templates/.github/workflows/release.yml@latest
+    uses: guilhermelinosp/templates/.github/workflows/release.yml@latest
     secrets: inherit
