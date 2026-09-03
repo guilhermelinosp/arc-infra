@@ -3,8 +3,13 @@ name: auto-pr
 on:
   push:
     branches:
-      - 'feat/**'
-      - 'fix/**'
+      - "feat/**"
+      - "fix/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   create-pr:
