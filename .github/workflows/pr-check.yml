@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   merge-check:
-    uses: guilhermelinosp/templates/.github/workflows/merge-check.yml@9fe39322263723d320cdce780f00d5926059798a # main
+    uses: guilhermelinosp/templates/.github/workflows/merge-check.yml@e99760b41c8a6789c14ad2aecc0ce56b2f1e7314 # main
 
   gitleaks:
     uses: guilhermelinosp/templates/.github/workflows/gitleaks.yml@9fe39322263723d320cdce780f00d5926059798a # main
