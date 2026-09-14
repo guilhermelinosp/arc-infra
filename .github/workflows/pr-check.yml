@@ -11,11 +11,14 @@ permissions:
 
 jobs:
   merge-check:
-    uses: guilhermelinosp/templates/.github/workflows/merge-check.yml@9fe39322263723d320cdce780f00d5926059798a # main
+    uses: guilhermelinosp/templates/.github/workflows/merge-check.yml@745ef1ca8288cd320b0b4dcf1485e34003945c79
 
   gitleaks:
-    uses: guilhermelinosp/templates/.github/workflows/gitleaks.yml@9fe39322263723d320cdce780f00d5926059798a # main
+    uses: guilhermelinosp/templates/.github/workflows/gitleaks.yml@745ef1ca8288cd320b0b4dcf1485e34003945c79
 
   labeler:
-    uses: guilhermelinosp/templates/.github/workflows/labeler.yml@9fe39322263723d320cdce780f00d5926059798a # main
+    uses: guilhermelinosp/templates/.github/workflows/labeler.yml@745ef1ca8288cd320b0b4dcf1485e34003945c79
+    with:
+      app-client-id: ${{ vars.HELLNET_ACTIONS_CLIENT_ID }}
+    secrets: inherit
 
