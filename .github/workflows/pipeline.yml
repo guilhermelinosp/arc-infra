@@ -9,12 +9,12 @@ on:
 jobs:
   validate:
     if: github.event_name == 'pull_request'
-    uses: guilhermelinosp/templates/.github/workflows/branch-rules.yml@9a3e1c923824fbd71b5dad45976c6e66ba2a1a01
+    uses: guilhermelinosp/templates/.github/workflows/branch-rules.yml@745ef1ca8288cd320b0b4dcf1485e34003945c79
 
   release:
     needs: validate
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
-    uses: guilhermelinosp/templates/.github/workflows/release.yml@9a3e1c923824fbd71b5dad45976c6e66ba2a1a01
+    uses: guilhermelinosp/templates/.github/workflows/release.yml@745ef1ca8288cd320b0b4dcf1485e34003945c79
     with:
       app-client-id: ${{ vars.HELLNET_ACTIONS_CLIENT_ID }}
     secrets: inherit
